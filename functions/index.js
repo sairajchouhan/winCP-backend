@@ -5,80 +5,37 @@ const express = require('express');
 const app = express();
 app.set(express.json());
 
+// const { auth } = require('./middlewares/auth');
+
+// ********************** FILE IMPORTS **********************
+
+const { getAllWins, postOneWin } = require('./handlers/wins');
+const { signup, login } = require('./handlers/users');
+
+// ********************** FILE IMPORTS--END **********************
+
 // ********************** FIREBASE SETUP **********************
-admin.initializeApp();
-const db = admin.firestore();
-const firebaseConfig = {
-  apiKey: 'AIzaSyDfLs8CW5IXEv_KpHm0GX6TcAnLL2_0E-I',
-  authDomain: 'wincp-9d49a.firebaseapp.com',
-  databaseURL: 'https://wincp-9d49a.firebaseio.com',
-  projectId: 'wincp-9d49a',
-  storageBucket: 'wincp-9d49a.appspot.com',
-  messagingSenderId: '596475602299',
-  appId: '1:596475602299:web:6e1f9892bf401281e249de',
-  measurementId: 'G-X6MJG1T4QY',
+
+// ********************** FIREBASE SETUP--END **********************
+
+const isEmpty = (string) => {
+  if (string.trim() === '') return true;
+  else return false;
 };
-firebase.initializeApp(firebaseConfig);
 
-app.get('/wins', (req, res) => {
-  let wins = [];
-  db.collection('wins')
-    .orderBy('createdAt', 'desc')
-    .get()
-    .then((data) => {
-      data.forEach((doc) => {
-        wins.push({
-          id: doc.id,
-          body: doc.data().body,
-          username: doc.data().body,
-          createdAt: doc.data().createdAt,
-          likesCount: doc.data().likesCount,
-          commentsCount: doc.data().commentsCount,
-        });
-      });
-      return res.json(wins);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ message: 'Server Error:' });
-    });
-});
+const isEmail = (email) => {
+  const emailRegEx = /^(([^<>([\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (email.match(emailRegEx)) return true;
+  else return false;
+};
 
-app.post('/wins', (req, res) => {
-  const { body, username } = req.body;
-  const newWin = {
-    username,
-    body,
-    createdAt: new Date().toISOString(),
-    likesCount: 0,
-    commentsCount: 0,
-  };
-  db.collection('wins')
-    .add(newWin)
-    .then((data) => {
-      return res.json({
-        message: 'Document created successfully',
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      return res.status(500).json({ error: 'Server Error', data: err.message });
-    });
-});
+app.get('/wins', getAllWins);
+app.post('/wins', postOneWin);
+app.post('/signup', signup);
+app.post('/login', login);
 
-app.post('/signup', (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
-  const newUser = { username, email, password, confirmPassword };
-  firebase
-    .auth()
-    .createUserWithEmailAndPassword(email, password)
-    .then((user) => {
-      return res.status(201).json('user created sucessfully');
-    })
-    .catch((err) => {
-      console.log(err.code);
-      return res.status(500).json({ error: err.message });
-    });
+app.get('/adsf', (req, res) => {
+  res.send('asdf');
 });
 
 exports.api = functions.https.onRequest(app);
