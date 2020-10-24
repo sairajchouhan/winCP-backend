@@ -5,8 +5,6 @@ const express = require('express');
 const app = express();
 app.set(express.json());
 
-// const { auth } = require('./middlewares/auth');
-
 // ********************** FILE IMPORTS **********************
 
 const { getAllWins, postOneWin } = require('./handlers/wins');

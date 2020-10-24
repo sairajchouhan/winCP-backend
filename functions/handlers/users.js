@@ -1,29 +1,23 @@
 const { db } = require('../utils/admin');
 const config = require('../utils/config');
 const firebase = require('firebase');
-const { isEmpty, isEmail } = require('../utils/helpers');
+const { validateLoginData, validateSignupData } = require('../utils/helpers');
 firebase.initializeApp(config);
 
+// eslint-disable-next-line consistent-return
 module.exports.signup = (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
   let userId = '';
   let token = '';
-  let errors = {};
+  const { valid, errors } = validateSignupData(
+    username,
+    email,
+    password,
+    confirmPassword
+  );
+  console.log('I am testing the validity of the valid', valid);
 
-  if (isEmpty(username)) {
-    errors.username = 'Username cannot not be empty';
-  }
-  if (!isEmail(email)) {
-    errors.email = 'Invalid email adress';
-  }
-  if (isEmpty(password)) {
-    errors.password = 'Password must not be empty';
-  }
-  if (password !== confirmPassword) {
-    errors.confirmPassword = 'Passwords must match ';
-  }
-
-  if (Object.keys(errors).length > 0) return res.status(400).json({ errors });
+  if (!valid) return res.status(400).json({ errors });
 
   db.doc(`/users/${username}`)
     .get()
@@ -62,16 +56,11 @@ module.exports.signup = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
-  const errors = {};
-  if (isEmpty(email)) {
-    errors.email = 'Email cannot not be empty';
-  }
-  if (isEmpty(password)) {
-    errors.password = 'Password cannot be empty';
-  }
-  if (Object.keys(errors).length > 0) return res.status(400).json({ errors });
+  const { valid, errors } = validateLoginData(email, password);
+  if (!valid) return res.status(400).json({ errors });
 
   firebase
     .auth()
