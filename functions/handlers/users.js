@@ -1,6 +1,8 @@
 const { db } = require('../utils/admin');
 const config = require('../utils/config');
 const firebase = require('firebase');
+const { isEmpty, isEmail } = require('../utils/helpers');
+firebase.initializeApp(config);
 
 module.exports.signup = (req, res) => {
   const { username, email, password, confirmPassword } = req.body;

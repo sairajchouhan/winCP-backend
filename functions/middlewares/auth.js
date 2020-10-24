@@ -1,8 +1,6 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const { admin, db } = require('../utils/admin');
 
 module.exports.auth = (req, res, next) => {
-  console.log('middle ware request received');
   let token;
   if (
     req.headers.authorization &&
@@ -10,18 +8,16 @@ module.exports.auth = (req, res, next) => {
   ) {
     token = req.headers.authorization.split('Bearer ')[1];
   } else {
-    console.error('No token found');
     return res.status(403).json({ errors: { message: 'Unauthorized' } });
   }
   admin
     .auth()
     .verifyIdToken(token)
     .then((decodedToken) => {
-      console.log(decodedToken);
       req.user = decodedToken;
       return db
         .collection('users')
-        .where('username', '==', req.user.uid)
+        .where('userId', '==', req.user.uid)
         .limit(1)
         .get();
     })
@@ -30,6 +26,12 @@ module.exports.auth = (req, res, next) => {
       return next();
     })
     .catch((err) => {
+      if (err.code === 'auth/id-token-expired') {
+        return res.status(400).json({ errors: { message: 'token expired' } });
+      }
+      if (err.code === 'auth/argument-error') {
+        return res.status(400).json({ errors: { message: 'invalid token' } });
+      }
       console.log('Errror during verifiying the token', err);
       return res.status(403).json(err);
     });
