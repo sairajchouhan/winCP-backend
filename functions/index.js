@@ -5,6 +5,7 @@ const cors = require('cors');
 // ********************** MIDDLEWARES AND CONFIGS **********************
 const app = express();
 app.set(express.json());
+app.use(express.static(`${__dirname}/public`));
 const whitelist = ['http://localhost:3000'];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -22,7 +23,7 @@ app.use(cors(corsOptions));
 
 // ********************** FILE IMPORTS **********************
 const { getAllWins, postOneWin } = require('./handlers/wins');
-const { signup, login } = require('./handlers/users');
+const { signup, login, uploadUserProfileImage } = require('./handlers/users');
 const { auth } = require('./middlewares/auth');
 // ********************** FILE IMPORTS--END ******************
 

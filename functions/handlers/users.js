@@ -1,6 +1,7 @@
-const { db } = require('../utils/admin');
+const { db, admin } = require('../utils/admin');
 const config = require('../utils/config');
 const firebase = require('firebase');
+const multer = require('multer');
 const { validateLoginData, validateSignupData } = require('../utils/helpers');
 firebase.initializeApp(config);
 
@@ -85,3 +86,4 @@ module.exports.login = (req, res) => {
       }
     });
 };
+
