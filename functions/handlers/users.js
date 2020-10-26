@@ -87,3 +87,27 @@ module.exports.login = (req, res) => {
     });
 };
 
+module.exports.getAuthenticatedUser = (req, res) => {
+  let userData = {};
+  db.doc(`users/${req.user.username}`)
+    .get()
+    .then((doc) => {
+      userData.info = doc.data();
+      return db
+        .collection('likes')
+        .where('username', '==', req.user.username)
+        .get();
+    })
+    .then((data) => {
+      userData.likes = [];
+      data.forEach((doc) => {
+        userData.likes.push(doc.data());
+      });
+      return res.json(userData);
+    })
+    .catch((err) => {
+      return res.status(500).json({ errors: err });
+    });
+};
+
+module.exports.addUserDetails = (req, res) => {};

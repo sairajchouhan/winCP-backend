@@ -2,6 +2,7 @@ const { db } = require('../utils/admin');
 
 module.exports.getAllWins = (req, res) => {
   let wins = [];
+
   db.collection('wins')
     .orderBy('createdAt', 'desc')
     .get()
@@ -10,10 +11,8 @@ module.exports.getAllWins = (req, res) => {
         wins.push({
           id: doc.id,
           body: doc.data().body,
-          username: doc.data().body,
+          username: doc.data().username,
           createdAt: doc.data().createdAt,
-          likesCount: doc.data().likesCount,
-          commentsCount: doc.data().commentsCount,
         });
       });
       return res.json(wins);
@@ -25,9 +24,10 @@ module.exports.getAllWins = (req, res) => {
 };
 
 module.exports.postOneWin = (req, res) => {
-  const { body, username } = req.body;
+  const { body } = req.body;
+  console.log(req.user.username);
   const newWin = {
-    username,
+    username: req.user.username,
     body,
     createdAt: new Date().toISOString(),
     likesCount: 0,

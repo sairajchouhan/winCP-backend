@@ -23,7 +23,12 @@ app.use(cors(corsOptions));
 
 // ********************** FILE IMPORTS **********************
 const { getAllWins, postOneWin } = require('./handlers/wins');
-const { signup, login, uploadUserProfileImage } = require('./handlers/users');
+const {
+  signup,
+  login,
+  addUserDetails,
+  getAuthenticatedUser,
+} = require('./handlers/users');
 const { auth } = require('./middlewares/auth');
 // ********************** FILE IMPORTS--END ******************
 
@@ -31,5 +36,7 @@ app.get('/wins', auth, getAllWins);
 app.post('/wins', auth, postOneWin);
 app.post('/signup', signup);
 app.post('/login', login);
+app.post('/user', auth, addUserDetails);
+app.get('/user', auth, getAuthenticatedUser);
 
 exports.api = functions.https.onRequest(app);
