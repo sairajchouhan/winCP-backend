@@ -24,7 +24,8 @@ module.exports.validateSignupData = (
     errors.email = 'Invalid email adress';
   }
   if (isEmpty(password)) {
-    errors.password = 'Password must not be empty';
+    errors.password = 'Password cannot not be empty';
+    errors.confirmPassword = '';
   }
   if (password !== confirmPassword) {
     errors.confirmPassword = 'Passwords must match ';
@@ -44,4 +45,23 @@ module.exports.validateLoginData = (email, password) => {
   }
   const valid = Object.keys(errors).length === 0;
   return { valid, errors };
+};
+
+module.exports.reduceUserDetails = (data) => {
+  let userDetails = {};
+  if (!isEmpty(data.bio.trim())) {
+    userDetails.bio = data.bio;
+  }
+  if (!isEmpty(data.website.trim())) {
+    if (data.website.trim().substring(0, 4) !== 'http') {
+      userDetails.website = `http://${data.website.trim()}`;
+    } else {
+      userDetails.website = data.website;
+    }
+  }
+  if (!isEmpty(data.location.trim())) {
+    userDetails.location = data.location;
+  }
+
+  return userDetails;
 };

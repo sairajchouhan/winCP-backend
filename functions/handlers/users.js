@@ -1,8 +1,11 @@
 const { db, admin } = require('../utils/admin');
 const config = require('../utils/config');
 const firebase = require('firebase');
-const multer = require('multer');
-const { validateLoginData, validateSignupData } = require('../utils/helpers');
+const {
+  validateLoginData,
+  validateSignupData,
+  reduceUserDetails,
+} = require('../utils/helpers');
 firebase.initializeApp(config);
 
 // eslint-disable-next-line consistent-return
@@ -16,7 +19,6 @@ module.exports.signup = (req, res) => {
     password,
     confirmPassword
   );
-  console.log('I am testing the validity of the valid', valid);
 
   if (!valid) return res.status(400).json({ errors });
 
@@ -24,7 +26,9 @@ module.exports.signup = (req, res) => {
     .get()
     .then((doc) => {
       if (doc.exists) {
-        return res.json({ errors: { username: 'Username is taken' } });
+        return res
+          .status(400)
+          .json({ errors: { username: 'Username is taken' } });
       } else {
         return firebase.auth().createUserWithEmailAndPassword(email, password);
       }
@@ -47,6 +51,7 @@ module.exports.signup = (req, res) => {
       return res.status(201).json({ token });
     })
     .catch((err) => {
+      console.log(err);
       if (err.code === 'auth/email-already-in-use') {
         return res
           .status(400)
@@ -69,20 +74,21 @@ module.exports.login = (req, res) => {
     .then((data) => data.user.getIdToken())
     .then((token) => res.json({ token }))
     .catch((err) => {
+      console.log(err);
       if (err.code === 'auth/invalid-email') {
         return res
           .status(400)
-          .json({ errors: { message: 'Enter a valid email adress' } });
-      } else if (err.code === 'auth/user-not-found') {
+          .json({ errors: { email: 'Enter a valid email adress' } });
+      }
+      if (err.code === 'auth/user-not-found') {
         return res.status(400).json({
-          errors: { message: 'User not found' },
+          errors: { email: 'Email adress not found' },
         });
-      } else if (err.code === 'auth/wrong-password') {
+      }
+      if (err.code === 'auth/wrong-password') {
         return res.status(400).json({
-          errors: { message: 'Invalid password' },
+          errors: { password: 'Invalid password' },
         });
-      } else {
-        return res.status(500).json(err);
       }
     });
 };
@@ -110,4 +116,13 @@ module.exports.getAuthenticatedUser = (req, res) => {
     });
 };
 
-module.exports.addUserDetails = (req, res) => {};
+module.exports.addUserDetails = (req, res) => {
+  let userDetails = reduceUserDetails(req.body);
+  db.doc(`users/${req.user.username}`)
+    .update(userDetails)
+    .then(() => res.json({ message: 'User details added successfully' }))
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ errors: err });
+    });
+};

@@ -22,7 +22,7 @@ app.use(cors(corsOptions));
 // ********************** MIDDLEWARES AND CONFIGS--END ******************
 
 // ********************** FILE IMPORTS **********************
-const { getAllWins, postOneWin } = require('./handlers/wins');
+const { getAllWins, postOneWin, getWin } = require('./handlers/wins');
 const {
   signup,
   login,
@@ -32,11 +32,16 @@ const {
 const { auth } = require('./middlewares/auth');
 // ********************** FILE IMPORTS--END ******************
 
+// wins routes
 app.get('/wins', auth, getAllWins);
 app.post('/wins', auth, postOneWin);
+app.get('/win/:winId', auth, getWin);
+
+// user routes
 app.post('/signup', signup);
 app.post('/login', login);
 app.post('/user', auth, addUserDetails);
 app.get('/user', auth, getAuthenticatedUser);
+app.post('/user', auth, addUserDetails);
 
 exports.api = functions.https.onRequest(app);

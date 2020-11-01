@@ -45,3 +45,31 @@ module.exports.postOneWin = (req, res) => {
       return res.status(500).json({ error: 'Server Error', data: err.message });
     });
 };
+
+module.exports.getWin = (req, res) => {
+  let winData = {};
+  db.doc(`/wins/${req.params.winId}`)
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Win not found' });
+      }
+      winData = doc.data();
+      winData.winId = doc.id;
+      return db
+        .collection('comments')
+        .orderBy('createdAt', 'desc')
+        .where('winId', '==', req.params.winId)
+        .get();
+    })
+    .then((data) => {
+      winData.comments = [];
+      data.forEach((doc) => {
+        winData.comments.push(doc.data());
+      });
+      return res.json(winData);
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: 'Server Error', data: err.message });
+    });
+};
