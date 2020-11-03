@@ -33,12 +33,14 @@ const {
   likeWin,
   unlikeWin,
   deleteWin,
+  markNotificationsAsRead,
 } = require('./handlers/wins');
 const {
   signup,
   login,
   addUserDetails,
   getAuthenticatedUser,
+  getUserDetails,
 } = require('./handlers/users');
 const { auth } = require('./middlewares/auth');
 // ********************** FILE IMPORTS--END ******************
@@ -57,7 +59,8 @@ app.post('/signup', signup);
 app.post('/login', login);
 app.post('/user', auth, addUserDetails);
 app.get('/user', auth, getAuthenticatedUser);
-app.post('/user', auth, addUserDetails);
+app.get('/user/:username', auth, getUserDetails);
+app.post('/notifications', markNotificationsAsRead);
 
 app.get('/', (req, res) => {
   res.send('Cloud functions is working');
@@ -68,22 +71,21 @@ exports.api = functions.https.onRequest(app);
 exports.createNotificationOnLike = functions.firestore
   .document('likes/{id}')
   .onCreate((snapshot) => {
-    console.log(snapshot);
-    console.log('I am In like notifcation trigger');
-    db.doc(`wins/${snapshot.data().winId}`)
+    return db
+      .doc(`wins/${snapshot.data().winId}`)
       .get()
       .then((doc) => {
-        return db.collection('notifications').doc(snapshot.id).set({
-          createdAt: new Date().toISOString(),
-          recipient: doc.data().username,
-          sender: snapshot.data().username,
-          type: 'like',
-          read: false,
-          winId: doc.id,
-        });
-      })
-      .then(() => {
-        return;
+        // eslint-disable-next-line promise/always-return
+        if (doc.exists && doc.data().username !== snapshot.data().username) {
+          return db.collection('notifications').doc(snapshot.id).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().username,
+            sender: snapshot.data().username,
+            type: 'like',
+            read: false,
+            winId: doc.id,
+          });
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -94,37 +96,30 @@ exports.createNotificationOnLike = functions.firestore
 exports.deleteNotificationOnUnlike = functions.firestore
   .document('likes/{id}')
   .onDelete((snapshot) => {
-    db.doc(`notifications/${snapshot.id}`)
+    return db
+      .doc(`notifications/${snapshot.id}`)
       .delete()
-      .then(() => {
-        return;
-      })
-      .catch((err) => {
-        console.error(err);
-        return;
-      });
+      .catch((err) => console.error(err));
   });
 
 exports.createNotificationOnComment = functions.firestore
   .document('comments/{id}')
   .onCreate((snapshot) => {
-    db.doc(`/wins/${snapshot.data().winId}`)
+    return db
+      .doc(`/wins/${snapshot.data().winId}`)
       .get()
       .then((doc) => {
-        return db.doc(`notifications/${snapshot.id}`).set({
-          createdAt: new Date().toISOString(),
-          recipient: doc.data().username,
-          sender: snapshot.data().username,
-          type: 'comment',
-          read: false,
-          winId: doc.id,
-        });
+        // eslint-disable-next-line promise/always-return
+        if (doc.exists && doc.data().username !== snapshot.data().username) {
+          return db.doc(`notifications/${snapshot.id}`).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().username,
+            sender: snapshot.data().username,
+            type: 'comment',
+            read: false,
+            winId: doc.id,
+          });
+        }
       })
-      .then(() => {
-        return;
-      })
-      .catch((err) => {
-        console.error(err);
-        return;
-      });
+      .catch((err) => console.error(err));
   });

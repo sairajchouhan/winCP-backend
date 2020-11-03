@@ -56,8 +56,15 @@ module.exports.signup = (req, res) => {
         return res
           .status(400)
           .json({ errors: { email: 'Email already exists' } });
+      }
+      if (err.code === 'auth/weak-password') {
+        return res.status(400).json({
+          errors: { password: 'Password should be at least 6 characters' },
+        });
       } else {
-        return res.status(500).json({ errors: err });
+        return res.status(500).json({
+          errors: { message: 'Something went wrong, Please try again' },
+        });
       }
     });
 };
@@ -80,16 +87,9 @@ module.exports.login = (req, res) => {
           .status(400)
           .json({ errors: { email: 'Enter a valid email adress' } });
       }
-      if (err.code === 'auth/user-not-found') {
-        return res.status(400).json({
-          errors: { email: 'Email adress not found' },
-        });
-      }
-      if (err.code === 'auth/wrong-password') {
-        return res.status(400).json({
-          errors: { password: 'Invalid password' },
-        });
-      }
+      return res.status(400).json({
+        errors: { message: 'Invalid credentials' },
+      });
     });
 };
 
@@ -147,24 +147,36 @@ module.exports.addUserDetails = (req, res) => {
     });
 };
 
-// db
-// .collection('notifications')
-// .where('recipient', '==', req.user.username)
-// .orderBy('createdAt', 'desc')
-// .limit(10);
-
-// .then((data) => {
-//   userData.notifications = [];
-//   data.forEach((doc) => {
-//     userData.notifications.push({
-//       recipient: doc.data().recipient,
-//       sender: doc.data().sender,
-//       createdAt: doc.data().createdAt,
-//       winId: doc.data().winId,
-//       type: doc.data().type,
-//       read: doc.data().read,
-//       notificationId: doc.id,
-//     });
-//   });
-//   return res.json(userData);
-// })
+module.exports.getUserDetails = (req, res) => {
+  let userData = {};
+  db.doc(`users/${req.params.username}`)
+    .get()
+    .then((doc) => {
+      if (doc.exists) {
+        userData.info = doc.data();
+        return db
+          .collection('wins')
+          .where('username', '==', req.params.username)
+          .get();
+      } else {
+        return res.status(404).json({ error: { message: 'user not found' } });
+      }
+    })
+    .then((data) => {
+      userData.wins = [];
+      data.forEach((doc) => {
+        userData.wins.push({
+          body: doc.data().body,
+          createdAt: doc.data().createdAt,
+          username: doc.data().username,
+          likesCount: doc.data().likesCount,
+          commentsCount: doc.data().commentsCount,
+          winId: doc.id,
+        });
+      });
+      return res.json(userData);
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: { message: err.message } });
+    });
+};

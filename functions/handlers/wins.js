@@ -14,6 +14,8 @@ module.exports.getAllWins = (req, res) => {
           body: doc.data().body,
           username: doc.data().username,
           createdAt: doc.data().createdAt,
+          likesCount: doc.data().likesCount,
+          commentsCount: doc.data().commentsCount,
         });
       });
       return res.json(wins);
@@ -26,7 +28,6 @@ module.exports.getAllWins = (req, res) => {
 
 module.exports.postOneWin = (req, res) => {
   const { body } = req.body;
-  console.log(req.user.username);
   const newWin = {
     username: req.user.username,
     body,
@@ -211,10 +212,54 @@ module.exports.deleteWin = (req, res) => {
       }
     })
     .then(() => {
-      return res.json({ message: 'win deleted susessfully' });
+      return db
+        .collection('comments')
+        .where('winId', '==', req.params.winId)
+        .get();
+    })
+    .then((data) => {
+      data.forEach((doc) => {
+        doc.ref.delete();
+      });
+      return db
+        .collection('likes')
+        .where('winId', '==', req.params.winId)
+        .get();
+    })
+    .then((data) => {
+      data.forEach((doc) => {
+        doc.ref.delete();
+      });
+      return db
+        .collection('notifications')
+        .where('winId', '==', req.params.winId)
+        .get();
+    })
+    .then((data) => {
+      data.forEach((doc) => {
+        doc.ref.delete();
+      });
+      return res.json({ message: 'Everything delted successfully' });
     })
     .catch((err) => {
       console.error(err);
       return res.status(500).json({ error: { message: err.code } });
+    });
+};
+
+module.exports.markNotificationsAsRead = (req, res) => {
+  let batch = db.batch();
+  req.body.forEach((notificationId) => {
+    const notification = db.doc(`/notifications/${notificationId}`);
+    batch.update(notification, { read: true });
+  });
+  batch
+    .commit()
+    .then(() => {
+      return res.json({ message: 'Notifications marked read' });
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ error: { message: err.message } });
     });
 };
