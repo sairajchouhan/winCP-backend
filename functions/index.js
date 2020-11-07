@@ -34,6 +34,8 @@ const {
   unlikeWin,
   deleteWin,
   markNotificationsAsRead,
+  deleteAComment,
+  editAComment,
 } = require('./handlers/wins');
 const {
   signup,
@@ -52,7 +54,9 @@ app.get('/win/:winId', auth, getWin);
 app.post('/win/:winId/comment', auth, commentOnWin);
 app.get('/win/:winId/like', auth, likeWin);
 app.get('/win/:winId/unlike', auth, unlikeWin);
+app.put('/win/:winId/:commentId', auth, editAComment);
 app.delete('/win/:winId', auth, deleteWin);
+app.delete(`/win/:winId/:commentId`, auth, deleteAComment);
 
 // user routes
 app.post('/signup', signup);

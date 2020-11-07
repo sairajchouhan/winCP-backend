@@ -67,7 +67,9 @@ module.exports.getWin = (req, res) => {
     .then((data) => {
       winData.comments = [];
       data.forEach((doc) => {
-        winData.comments.push(doc.data());
+        const data = doc.data();
+        data.commentId = doc.id;
+        winData.comments.push(data);
       });
       return res.json(winData);
     })
@@ -138,7 +140,7 @@ module.exports.likeWin = (req, res) => {
             return winRef.update({ likesCount: winData.likesCount });
           })
           .then(() => {
-            return res.json(winData);
+            return res.json(winData.likesCount);
           });
       } else {
         return res
@@ -182,7 +184,7 @@ module.exports.unlikeWin = (req, res) => {
             return winRef.update({ likesCount: winData.likesCount });
           })
           .then(() => {
-            return res.json(winData);
+            return res.json(winData.likesCount);
           });
       } else {
         return res
@@ -195,6 +197,85 @@ module.exports.unlikeWin = (req, res) => {
     });
 };
 
+module.exports.deleteAComment = (req, res) => {
+  const winRef = db.doc(`/wins/${req.params.winId}`);
+  const commentsRef = db.doc(`/comments/${req.params.commentId}`);
+  winRef
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return res
+          .status(404)
+          .json({ error: { message: 'Win does not exist' } });
+      } else {
+        return commentsRef.get();
+      }
+    })
+    .then((doc) => {
+      if (!doc.exists) {
+        return res
+          .status(404)
+          .json({ error: { message: 'comment does not exist' } });
+      } else {
+        if (doc.data().username !== req.user.username) {
+          throw new Error('unauthorized');
+        } else {
+          return winRef.get();
+        }
+      }
+    })
+    .then((doc) => {
+      return winRef.update({ commentsCount: doc.data().commentsCount - 1 });
+    })
+    .then(() => {
+      return commentsRef.delete();
+    })
+    .then(() => {
+      return res.json({ message: 'comment deleted successfully' });
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ error: { message: err.message } });
+    });
+};
+/////
+
+module.exports.editAComment = (req, res) => {
+  const winRef = db.doc(`/wins/${req.params.winId}`);
+  const commentsRef = db.doc(`/comments/${req.params.commentId}`);
+  winRef
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return res
+          .status(404)
+          .json({ error: { message: 'Win does not exist' } });
+      } else {
+        return commentsRef.get();
+      }
+    })
+    .then((doc) => {
+      if (!doc.exists) {
+        return res
+          .status(404)
+          .json({ error: { message: 'comment does not exist' } });
+      } else {
+        if (!doc.data().username !== req.user.username) {
+          throw new Error('unauthorized');
+        } else {
+          return commentsRef.update({ body: req.body.body });
+        }
+      }
+    })
+    .then(() => {
+      return res.json({ message: 'comment updated successfully' });
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ error: { message: err.message } });
+    });
+};
+/////
 module.exports.deleteWin = (req, res) => {
   const winRef = db.doc(`/wins/${req.params.winId}`);
   winRef

@@ -88,7 +88,10 @@ module.exports.login = (req, res) => {
           .json({ errors: { email: 'Enter a valid email adress' } });
       }
       return res.status(400).json({
-        errors: { message: 'Invalid credentials' },
+        errors: {
+          email: 'Invalid credentials',
+          password: 'Invalid credentials',
+        },
       });
     });
 };
