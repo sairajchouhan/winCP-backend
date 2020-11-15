@@ -36,6 +36,7 @@ const {
   markNotificationsAsRead,
   deleteAComment,
   editAComment,
+  getAllWinsOfAUser,
 } = require('./handlers/wins');
 const {
   signup,
@@ -49,11 +50,12 @@ const { auth } = require('./middlewares/auth');
 
 // wins routes
 app.get('/wins', auth, getAllWins);
-app.post('/wins', auth, postOneWin);
+app.get('/wins/:username', auth, getAllWinsOfAUser);
 app.get('/win/:winId', auth, getWin);
-app.post('/win/:winId/comment', auth, commentOnWin);
-app.get('/win/:winId/like', auth, likeWin);
 app.get('/win/:winId/unlike', auth, unlikeWin);
+app.get('/win/:winId/like', auth, likeWin);
+app.post('/wins', auth, postOneWin);
+app.post('/win/:winId/comment', auth, commentOnWin);
 app.put('/win/:winId/:commentId', auth, editAComment);
 app.delete('/win/:winId', auth, deleteWin);
 app.delete(`/win/:winId/:commentId`, auth, deleteAComment);

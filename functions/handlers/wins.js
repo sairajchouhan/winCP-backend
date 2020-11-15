@@ -1,5 +1,6 @@
 /* eslint-disable promise/no-nesting */
 const { db } = require('../utils/admin');
+const { validateCreateWinData } = require('../utils/helpers');
 
 module.exports.getAllWins = (req, res) => {
   let wins = [];
@@ -12,6 +13,7 @@ module.exports.getAllWins = (req, res) => {
         wins.push({
           id: doc.id,
           body: doc.data().body,
+          title: doc.data().title,
           username: doc.data().username,
           createdAt: doc.data().createdAt,
           likesCount: doc.data().likesCount,
@@ -27,10 +29,13 @@ module.exports.getAllWins = (req, res) => {
 };
 
 module.exports.postOneWin = (req, res) => {
-  const { body } = req.body;
+  const { body, title } = req.body;
+  const { valid, errors } = validateCreateWinData(req.body);
+  if (!valid) return res.status(400).json({ errors });
   const newWin = {
     username: req.user.username,
     body,
+    title,
     createdAt: new Date().toISOString(),
     likesCount: 0,
     commentsCount: 0,
@@ -342,5 +347,24 @@ module.exports.markNotificationsAsRead = (req, res) => {
     .catch((err) => {
       console.error(err);
       return res.status(500).json({ error: { message: err.message } });
+    });
+};
+
+module.exports.getAllWinsOfAUser = (req, res) => {
+  const wins = [];
+  db.collection('wins')
+    .where('username', '==', req.params.username)
+    .get()
+    .then((data) => {
+      if (data.empty) {
+        return res.status(400).json({ error: { message: 'user not found' } });
+      }
+      data.forEach((doc) => {
+        wins.push(doc.data());
+      });
+      return res.json({ wins });
+    })
+    .catch((err) => {
+      console.log(err);
     });
 };

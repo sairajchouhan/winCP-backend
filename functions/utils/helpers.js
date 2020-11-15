@@ -65,3 +65,17 @@ module.exports.reduceUserDetails = (data) => {
 
   return userDetails;
 };
+
+module.exports.validateCreateWinData = (data) => {
+  const errors = {};
+  if (isEmpty(data.title)) {
+    errors.title = 'Title cannot be empty';
+  }
+  if (isEmpty(data.body)) {
+    errors.body = 'Body cannot be empty';
+  }
+
+  const valid = Object.keys(errors).length === 0;
+
+  return { errors, valid };
+};
