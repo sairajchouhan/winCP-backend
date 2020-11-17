@@ -62,16 +62,19 @@ module.exports.reduceUserDetails = (data) => {
   if (!isEmpty(data.location.trim())) {
     userDetails.location = data.location;
   }
+  if (!isEmpty(data.username.trim())) {
+    userDetails.username = data.username;
+  }
 
   return userDetails;
 };
 
 module.exports.validateCreateWinData = (data) => {
   const errors = {};
-  if (isEmpty(data.title)) {
+  if (isEmpty(data.title.trim())) {
     errors.title = 'Title cannot be empty';
   }
-  if (isEmpty(data.body)) {
+  if (isEmpty(data.body.trim())) {
     errors.body = 'Body cannot be empty';
   }
 

@@ -139,15 +139,41 @@ module.exports.getAuthenticatedUser = (req, res) => {
     });
 };
 
-module.exports.addUserDetails = (req, res) => {
+module.exports.updateUserDetails = (req, res) => {
   let userDetails = reduceUserDetails(req.body);
-  db.doc(`users/${req.user.username}`)
-    .update(userDetails)
-    .then(() => res.json({ message: 'User details added successfully' }))
-    .catch((err) => {
-      console.error(err);
-      return res.status(500).json({ errors: err });
-    });
+  console.log(userDetails);
+  const userRef = db.doc(`users/${req.user.username}`);
+  let userInfo = {};
+  if (!userDetails.username) {
+    console.log('no username block');
+    db.doc(`users/${req.user.username}`)
+      .update(userDetails)
+      .then(() => res.json({ message: 'User details added successfully' }))
+      .catch((err) => {
+        console.error(err);
+        return res.status(500).json({ errors: err });
+      });
+  } else {
+    userRef
+      .get()
+      .then((doc) => {
+        userInfo = doc.data();
+        userInfo.username = req.body.username;
+        console.log(userInfo);
+        return userRef.delete();
+      })
+      .then(() => {
+        return db.collection('users').doc(userInfo.username).set(userInfo);
+      })
+      .then((doc) => {
+        console.log(doc);
+        return res.json({ message: 'User details added successfully' });
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(500).json({ errors: err });
+      });
+  }
 };
 
 module.exports.getUserDetails = (req, res) => {

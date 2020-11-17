@@ -41,7 +41,7 @@ const {
 const {
   signup,
   login,
-  addUserDetails,
+  updateUserDetails,
   getAuthenticatedUser,
   getUserDetails,
 } = require('./handlers/users');
@@ -63,7 +63,7 @@ app.delete(`/win/:winId/:commentId`, auth, deleteAComment);
 // user routes
 app.post('/signup', signup);
 app.post('/login', login);
-app.post('/user', auth, addUserDetails);
+app.post('/user', auth, updateUserDetails);
 app.get('/user', auth, getAuthenticatedUser);
 app.get('/user/:username', auth, getUserDetails);
 app.post('/notifications', markNotificationsAsRead);
