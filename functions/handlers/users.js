@@ -159,7 +159,9 @@ module.exports.updateUserDetails = (req, res) => {
       .then((doc) => {
         userInfo = doc.data();
         userInfo.username = req.body.username;
-        console.log(userInfo);
+        userInfo.location = req.body.location;
+        userInfo.bio = req.body.bio;
+        userInfo.website = req.body.website;
         return userRef.delete();
       })
       .then(() => {

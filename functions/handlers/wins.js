@@ -18,6 +18,7 @@ module.exports.getAllWins = (req, res) => {
           createdAt: doc.data().createdAt,
           likesCount: doc.data().likesCount,
           commentsCount: doc.data().commentsCount,
+          profileImgUrl: doc.data().profileImgUrl,
         });
       });
       return res.json(wins);
@@ -40,8 +41,13 @@ module.exports.postOneWin = (req, res) => {
     likesCount: 0,
     commentsCount: 0,
   };
-  db.collection('wins')
-    .add(newWin)
+
+  db.doc(`/users/${req.user.username}`)
+    .get()
+    .then((doc) => {
+      newWin.profileImgUrl = doc.data().profileImgUrl;
+      return db.collection('wins').add(newWin);
+    })
     .then((doc) => {
       const resWin = newWin;
       resWin.winId = doc.id;
