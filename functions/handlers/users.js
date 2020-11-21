@@ -144,8 +144,8 @@ module.exports.updateUserDetails = (req, res) => {
   console.log(userDetails);
   const userRef = db.doc(`users/${req.user.username}`);
   let userInfo = {};
+  let previousUsername = '';
   if (!userDetails.username) {
-    console.log('no username block');
     db.doc(`users/${req.user.username}`)
       .update(userDetails)
       .then(() => res.json({ message: 'User details added successfully' }))
@@ -158,6 +158,7 @@ module.exports.updateUserDetails = (req, res) => {
       .get()
       .then((doc) => {
         userInfo = doc.data();
+        previousUsername = doc.data().username;
         userInfo.username = req.body.username;
         userInfo.location = req.body.location;
         userInfo.bio = req.body.bio;
@@ -169,7 +170,16 @@ module.exports.updateUserDetails = (req, res) => {
       })
       .then((doc) => {
         console.log(doc);
-        return res.json({ message: 'User details added successfully' });
+        return db
+          .collection('wins')
+          .where('username', '==', previousUsername)
+          .get();
+      })
+      .then((data) => {
+        data.forEach((doc) => {
+          doc.ref.update({ username: userInfo.username });
+        });
+        return res.json(userInfo);
       })
       .catch((err) => {
         console.log(err);
