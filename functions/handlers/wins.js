@@ -29,6 +29,7 @@ module.exports.getAllWins = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 module.exports.postOneWin = (req, res) => {
   const { body, title } = req.body;
   const { valid, errors } = validateCreateWinData(req.body);
@@ -45,7 +46,9 @@ module.exports.postOneWin = (req, res) => {
   db.doc(`/users/${req.user.username}`)
     .get()
     .then((doc) => {
-      newWin.profileImgUrl = doc.data().profileImgUrl;
+      if (doc.data().profileImgUrl) {
+        newWin.profileImgUrl = doc.data().profileImgUrl;
+      }
       return db.collection('wins').add(newWin);
     })
     .then((doc) => {
