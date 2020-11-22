@@ -8,19 +8,6 @@ const { db } = require('./utils/admin');
 const app = express();
 app.set(express.json());
 app.use(express.static(`${__dirname}/public`));
-// const whitelist = ['http://localhost:3000'];
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (whitelist.indexOf(origin) !== -1 || !origin) {
-//       // eslint-disable-next-line callback-return
-//       callback(null, true);
-//     } else {
-//       // eslint-disable-next-line callback-return
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-// };
-// app.use(cors(corsOptions));
 app.use(cors());
 // ********************** MIDDLEWARES AND CONFIGS--END ******************
 
@@ -41,6 +28,7 @@ const {
 const {
   signup,
   login,
+  resetPassword,
   updateUserDetails,
   getAuthenticatedUser,
   getUserDetails,
@@ -60,9 +48,12 @@ app.put('/win/:winId/:commentId', auth, editAComment);
 app.delete('/win/:winId', auth, deleteWin);
 app.delete(`/win/:winId/:commentId`, auth, deleteAComment);
 
-// user routes
+// auth routes
 app.post('/signup', signup);
 app.post('/login', login);
+app.post('/reset-password', resetPassword);
+
+// user routes
 app.post('/user', auth, updateUserDetails);
 app.get('/user', auth, getAuthenticatedUser);
 app.get('/user/:username', auth, getUserDetails);

@@ -221,3 +221,25 @@ module.exports.getUserDetails = (req, res) => {
       return res.status(500).json({ error: { message: err.message } });
     });
 };
+
+module.exports.resetPassword = (req, res) => {
+  const { email } = req.body;
+  db.collection('users')
+    .where('email', '==', email)
+    .get()
+    .then((data) => {
+      if (data.empty) {
+        return res.status(400).json({ error: 'user does not exist' });
+      } else {
+        const auth = firebase.auth();
+        return auth.sendPasswordResetEmail(req.body.email);
+      }
+    })
+    .then(() => {
+      return res.json({ message: 'Check your email for further instructions' });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({ error: err });
+    });
+};
