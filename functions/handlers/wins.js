@@ -41,6 +41,7 @@ module.exports.postOneWin = (req, res) => {
     createdAt: new Date().toISOString(),
     likesCount: 0,
     commentsCount: 0,
+    postImageUrls: [],
   };
 
   db.doc(`/users/${req.user.username}`)
