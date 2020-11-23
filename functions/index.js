@@ -57,7 +57,7 @@ app.post('/reset-password', resetPassword);
 app.post('/user', auth, updateUserDetails);
 app.get('/user', auth, getAuthenticatedUser);
 app.get('/user/:username', auth, getUserDetails);
-app.post('/notifications', markNotificationsAsRead);
+app.post('/notifications', auth, markNotificationsAsRead);
 
 app.get('/', (req, res) => {
   res.send('Cloud functions is working');
@@ -81,6 +81,7 @@ exports.createNotificationOnLike = functions.firestore
             type: 'like',
             read: false,
             winId: doc.id,
+            notificationId: snapshot.id,
           });
         }
       })
@@ -118,5 +119,14 @@ exports.createNotificationOnComment = functions.firestore
           });
         }
       })
+      .catch((err) => console.error(err));
+  });
+
+exports.deleteNotificationOnDeletingTheComment = functions.firestore
+  .document('comments/{id}')
+  .onDelete((snapshot) => {
+    return db
+      .doc(`notifications/${snapshot.id}`)
+      .delete()
       .catch((err) => console.error(err));
   });
