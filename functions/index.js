@@ -116,6 +116,7 @@ exports.createNotificationOnComment = functions.firestore
             type: 'comment',
             read: false,
             winId: doc.id,
+            notificationId: snapshot.id,
           });
         }
       })
