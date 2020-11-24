@@ -44,6 +44,7 @@ module.exports.signup = (req, res) => {
         email,
         createdAt: new Date().toISOString(),
         userId,
+        profileImgUrl: '',
       };
       return db.doc(`users/${newUser.username}`).set(newUser);
     })
