@@ -20,7 +20,6 @@ const {
   likeWin,
   unlikeWin,
   deleteWin,
-  markNotificationsAsRead,
   deleteAComment,
   editAComment,
   getAllWinsOfAUser,
@@ -33,6 +32,7 @@ const {
   getAuthenticatedUser,
   getUserDetails,
 } = require('./handlers/users');
+const { markNotificationsAsRead } = require('./handlers/notifications');
 const { auth } = require('./middlewares/auth');
 // ********************** FILE IMPORTS--END ******************
 
