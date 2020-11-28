@@ -346,6 +346,7 @@ module.exports.deleteWin = (req, res) => {
 module.exports.getAllWinsOfAUser = (req, res) => {
   const wins = [];
   db.collection('wins')
+    .orderBy('createdAt', 'desc')
     .where('username', '==', req.params.username)
     .get()
     .then((data) => {
